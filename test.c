@@ -8,12 +8,13 @@
 #include <errno.h>
 
 int main(void) {
-    DIR *d = opendir("./test");
-    struct dirent *dir;
+    
     for (int i = 0; i < 5; i++) {
         char output_file_path[100];
         sprintf(output_file_path, "record_%d.txt", i);
         FILE *output_fp = fopen(output_file_path, "w");
+        DIR *d = opendir("./test");
+        struct dirent *dir;
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 if (strcmp(dir->d_name, "..") == 0 || strcmp(dir->d_name, ".") == 0) {
@@ -46,6 +47,7 @@ int main(void) {
                         exit(EXIT_FAILURE);
                     }
                 } else {
+                    close(fd[1]);
                     wait(NULL);
                 }
                 FILE *fp = fdopen(fd[0], "r");
@@ -53,9 +55,13 @@ int main(void) {
                 fscanf(fp, "%lf", &time);
                 printf("%s %lf\n", dir->d_name, time);
                 fprintf(output_fp, "%s %lf\n", dir->d_name, time);
+                fclose(fp);
+                close(fd[0]);
             }
+
             closedir(d);
         }
+        fclose(output_fp);
     }
     
   return(0);
